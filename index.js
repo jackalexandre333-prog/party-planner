@@ -3,11 +3,9 @@ const COHORT = "/2609-Jack";
 const RESOURCE = "/events";
 const API = BASE + COHORT + RESOURCE;
 
-// === State ===
 let events = [];
 let selectedEvent;
 
-// Gets all parties from the API
 async function getEvents() {
   try {
     const response = await fetch(API);
@@ -23,7 +21,6 @@ async function getEvents() {
   }
 }
 
-// Gets one selected party from the API
 async function getEvent(id) {
   try {
     const response = await fetch(API + "/" + id);
@@ -39,9 +36,6 @@ async function getEvent(id) {
   }
 }
 
-// === Components ===
-
-// Creates a clickable party name
 function EventListItem(event) {
   const $eventItem = document.createElement("li");
   const $link = document.createElement("a");
@@ -54,7 +48,6 @@ function EventListItem(event) {
   return $eventItem;
 }
 
-// Creates the list of all parties
 function EventList() {
   const $eventList = document.createElement("ul");
   const $event = events.map(EventListItem);
@@ -62,7 +55,6 @@ function EventList() {
   return $eventList;
 }
 
-// Displays details about the selected party
 function EventDetails() {
   if (!selectedEvent) {
     const $p = document.createElement("p");
@@ -90,7 +82,6 @@ function EventDetails() {
   return $event;
 }
 
-// === Render ===
 function render() {
   const $app = document.querySelector("#app");
 
@@ -112,7 +103,6 @@ function render() {
   $app.querySelector("EventDetails").replaceWith(EventDetails());
 }
 
-// === Initialize ===
 async function init() {
   await getEvents();
   render();
