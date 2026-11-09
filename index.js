@@ -1,5 +1,5 @@
 const BASE = "https://fsa-crud-2aa9294fe819.herokuapp.com/api";
-const COHORT = "/2609-Jack"; // Make sure to change this!
+const COHORT = "/2609-Jack";
 const RESOURCE = "/events";
 const API = BASE + COHORT + RESOURCE;
 
@@ -7,10 +7,13 @@ const API = BASE + COHORT + RESOURCE;
 let events = [];
 let selectedEvent;
 
-/** Updates state with all artists from the API */
+// Gets all parties from the API
 async function getEvents() {
   try {
     const response = await fetch(API);
+    if (!response.ok) {
+      throw new Error("Failed to fetch selected event");
+    }
     const result = await response.json();
     console.log(result.data);
     events = result.data;
@@ -20,62 +23,77 @@ async function getEvents() {
   }
 }
 
-/** Updates state with a single artist from the API */
-// async function getEvent(id) {
-//   try {
-//     const response = await fetch(API + "/" + id);
-//     const result = await response.json();
-//     console.log(result.data);
-//     selectedArtist = result.data;
-//     render();
-//   } catch (error) {
-//     console.error(error);
-//   }
-// }
+// Gets one selected party from the API
+async function getEvent(id) {
+  try {
+    const response = await fetch(API + "/" + id);
+    if (!response.ok) {
+      throw new Error("Failed to fetch selected event");
+    }
+    const result = await response.json();
+    console.log(result.data);
+    selectedEvent = result.data;
+    render();
+  } catch (error) {
+    console.error(error);
+  }
+}
 
 // === Components ===
 
-/** Artist name that shows more details about the artist when clicked */
+// Creates a clickable party name
 function EventListItem(event) {
   const $eventItem = document.createElement("li");
-
-  $eventItem.innerHTML = `
-<li><a href="#selected">${event.name}</a></li>
-`;
-  $eventItem.addEventListener("click", () => getEvent(event.id));
+  const $link = document.createElement("a");
+  $link.href = "#selected";
+  $link.textContent = event.name;
+  $eventItem.append($link);
+  $eventItem.addEventListener("click", () => {
+    getEvent(event.id);
+  });
   return $eventItem;
 }
 
-/** A list of names of all artists */
+// Creates the list of all parties
 function EventList() {
   const $eventList = document.createElement("ul");
-  //   $eventList.classList.add("lineup");
   const $event = events.map(EventListItem);
   $eventList.replaceChildren(...$event);
   return $eventList;
 }
 
-/** Detailed information about the selected artist */
+// Displays details about the selected party
 function EventDetails() {
   if (!selectedEvent) {
     const $p = document.createElement("p");
-    $p.textContent = "Please select an artist to learn more.";
+    $p.textContent = "Please select a party to learn more.";
     return $p;
   }
+
   const $event = document.createElement("section");
   $event.classList.add("event");
-  $event.innerHTML = `
-    <h3>${selectedEvent.name} #${selectedEvent.id}</h3>
-    <figure>
-      <img alt=${selectedEvent.name} src=${selectedEvent.imageUrl} />
-    </figure>
-    <p>${selectedEvent.description}</p>
-  `;
+
+  const $name = document.createElement("h3");
+  $name.textContent = `${selectedEvent.name} #${selectedEvent.id}`;
+
+  const $date = document.createElement("p");
+  $date.textContent = selectedEvent.date.split("T")[0];
+
+  const $location = document.createElement("p");
+  $location.textContent = selectedEvent.location;
+
+  const $description = document.createElement("p");
+  $description.textContent = selectedEvent.description;
+
+  $event.append($name, $date, $location, $description);
+
+  return $event;
 }
 
 // === Render ===
 function render() {
   const $app = document.querySelector("#app");
+
   $app.innerHTML = `
     <h1>Party Planner</h1>
     <main>
@@ -85,14 +103,16 @@ function render() {
       </section>
       <section id="selected">
         <h2>Party Details</h2>
-        <PartyDetails></PartyDetails>
+        <EventDetails></EventDetails>
       </section>
     </main>
   `;
+
   $app.querySelector("EventList").replaceWith(EventList());
   $app.querySelector("EventDetails").replaceWith(EventDetails());
 }
 
+// === Initialize ===
 async function init() {
   await getEvents();
   render();
